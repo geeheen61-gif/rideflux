@@ -61,7 +61,7 @@ exports.requestRide = async (req, res) => {
       distance,
       duration,
       vehicleType: vehicleType || 'car',
-      status: 'requested'
+      status: 'pending'
     });
 
     await ride.save();
@@ -96,6 +96,7 @@ exports.acceptRide = async (req, res) => {
 
     ride.driver = driverId;
     ride.status = 'accepted';
+    ride.acceptedAt = Date.now();
     await ride.save();
 
     const updatedRide = await Ride.findById(rideId)
@@ -152,6 +153,9 @@ exports.updateRideStatus = async (req, res) => {
     if (!ride) return res.status(404).json({ msg: 'Ride not found' });
 
     ride.status = status;
+    if (status === 'completed') {
+      ride.completedAt = Date.now();
+    }
     await ride.save();
 
     const updatedRide = await Ride.findById(rideId).populate('passenger').populate('driver');
@@ -181,7 +185,7 @@ exports.getActiveRide = async (req, res) => {
         { passenger: req.user.id },
         { driver: req.user.id }
       ],
-      status: { $in: ['requested', 'accepted', 'arrived', 'started'] }
+      status: { $in: ['pending', 'accepted', 'arrived', 'started'] }
     }).populate('passenger').populate('driver');
 
     if (!ride) {
@@ -206,7 +210,7 @@ exports.getNearbyRequests = async (req, res) => {
 
     // Find all 'requested' rides within 40km of the driver's current position
     const rides = await Ride.find({
-      status: 'requested',
+      status: 'pending',
       'pickup.location': {
         $nearSphere: {
           $geometry: {

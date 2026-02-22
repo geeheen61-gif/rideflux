@@ -19,14 +19,16 @@ const RideSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['requested', 'accepted', 'arrived', 'started', 'completed', 'cancelled'],
-    default: 'requested'
+    enum: ['pending', 'accepted', 'arrived', 'started', 'completed', 'cancelled'],
+    default: 'pending'
   },
   fare: Number,
   distance: Number,
   duration: Number,
   vehicleType: { type: String, enum: ['bike', 'car', 'luxury', 'economy'], default: 'car' },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  acceptedAt: { type: Date },
+  completedAt: { type: Date }
 });
 
 RideSchema.index({ 'pickup.location': '2dsphere' });

@@ -15,11 +15,12 @@ const UserSchema = new mongoose.Schema({
   resetPasswordOtp: { type: String },
   resetPasswordExpires: { type: Date },
   isBlocked: { type: Boolean, default: false },
+  lastActive: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now }
 });
 
 // Hash password before saving
-UserSchema.pre('save', async function() {
+UserSchema.pre('save', async function () {
   if (!this.isModified('password')) {
     return;
   }
@@ -28,7 +29,7 @@ UserSchema.pre('save', async function() {
 });
 
 // Match password
-UserSchema.methods.matchPassword = async function(enteredPassword) {
+UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

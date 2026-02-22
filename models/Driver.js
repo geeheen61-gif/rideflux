@@ -23,6 +23,7 @@ const DriverSchema = new mongoose.Schema({
     coordinates: { type: [Number], default: [0, 0] } // [longitude, latitude]
   },
   role: { type: String, default: 'driver' },
+  lastActive: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now }
 });
 

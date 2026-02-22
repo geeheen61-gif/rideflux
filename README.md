@@ -6,35 +6,7 @@
 ```bash
 npm install
 ```
-
-### 2. Configure Environment Variables
-
-Create a `.env` file in the `server` folder with the following content:
-
-```env
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-
-# Database Configuration
-MONGO_URI=your_mongodb_uri
-
-# JWT Configuration
-JWT_SECRET=your_jwt_secret
-
-# Mapbox Configuration
-MAPBOX_TOKEN=your_mapbox_token
-
-# Email Configuration (for OTP and notifications)
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_email_app_password
-
-# Google OAuth Configuration
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-```
-
-### 3. Start MongoDB
+### 2. Start MongoDB
 
 Make sure MongoDB is running on your system:
 
@@ -46,7 +18,7 @@ mongod
 sudo systemctl start mongod
 ```
 
-### 4. Seed Admin User (Optional)
+### 3. Seed Admin User (Optional)
 
 ```bash
 node config/seedAdmin.js
@@ -56,7 +28,7 @@ This creates an admin user with:
 - Email: `admin@rideflux.com`
 - Password: `Admin@123`
 
-### 5. Start the Server
+### 4. Start the Server
 
 ```bash
 # Development mode with auto-reload
