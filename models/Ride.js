@@ -25,7 +25,7 @@ const RideSchema = new mongoose.Schema({
   fare: Number,
   distance: Number,
   duration: Number,
-  vehicleType: { type: String, enum: ['bike', 'car', 'luxury', 'economy'], default: 'car' },
+  vehicleType: { type: String, enum: ['bike', 'car', 'comfort', 'luxury', 'economy'], default: 'car' },
   createdAt: { type: Date, default: Date.now },
   acceptedAt: { type: Date },
   completedAt: { type: Date }

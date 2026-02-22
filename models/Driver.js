@@ -8,7 +8,7 @@ const DriverSchema = new mongoose.Schema({
   password: { type: String },
   socialId: { type: String },
   provider: { type: String, enum: ['local', 'google', 'facebook'], default: 'local' },
-  vehicleType: { type: String, enum: ['bike', 'car', 'luxury', 'economy'], default: 'car' },
+  vehicleType: { type: String, enum: ['bike', 'car', 'comfort', 'luxury', 'economy'], default: 'car' },
   vehicleNumber: { type: String },
   isOnline: { type: Boolean, default: false },
   isVerified: { type: Boolean, default: false },

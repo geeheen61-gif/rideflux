@@ -11,10 +11,16 @@ exports.updateStatus = async (req, res) => {
 
     if (isOnline !== undefined) driver.isOnline = isOnline;
     if (location) {
-      driver.currentLocation = {
-        type: 'Point',
-        coordinates: [location.longitude, location.latitude]
-      };
+      // Accept both GeoJSON {type, coordinates:[lng,lat]} and flat {longitude, latitude}
+      let coords;
+      if (location.coordinates && Array.isArray(location.coordinates)) {
+        coords = location.coordinates; // [lng, lat]
+      } else if (location.longitude !== undefined && location.latitude !== undefined) {
+        coords = [location.longitude, location.latitude];
+      }
+      if (coords) {
+        driver.currentLocation = { type: 'Point', coordinates: coords };
+      }
     }
 
     await driver.save();

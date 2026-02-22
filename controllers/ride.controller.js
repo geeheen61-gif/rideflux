@@ -90,8 +90,14 @@ exports.acceptRide = async (req, res) => {
       return res.status(404).json({ msg: 'Ride not found' });
     }
 
-    if (ride.status !== 'requested') {
+    // FIX: Schema uses 'pending', not 'requested'
+    if (ride.status !== 'pending') {
       return res.status(400).json({ msg: 'Ride is no longer available' });
+    }
+
+    // Prevent duplicate acceptance (race condition safety)
+    if (ride.driver && ride.driver.toString() !== driverId) {
+      return res.status(400).json({ msg: 'Ride already accepted by another driver' });
     }
 
     ride.driver = driverId;
