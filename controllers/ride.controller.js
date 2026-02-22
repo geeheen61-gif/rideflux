@@ -36,21 +36,29 @@ exports.requestRide = async (req, res) => {
       location: { type: 'Point', coordinates: dropCoords }
     };
 
-    // Find ALL nearby online drivers of correct vehicle type within 40km
-    const nearbyDrivers = await Driver.find({
-      isOnline: true,
-      isApproved: true,
-      vehicleType: vehicleType || 'car',
-      currentLocation: {
-        $nearSphere: {
-          $geometry: {
-            type: "Point",
-            coordinates: pickupCoords
-          },
-          $maxDistance: 50000 // 50km
+    // Find ALL nearby online drivers of correct vehicle type within 50km
+    // Non-fatal: ride is created regardless of whether drivers are found
+    let nearbyDrivers = [];
+    try {
+      nearbyDrivers = await Driver.find({
+        isOnline: true,
+        isApproved: true,
+        vehicleType: vehicleType || 'car',
+        currentLocation: {
+          $nearSphere: {
+            $geometry: {
+              type: "Point",
+              coordinates: pickupCoords
+            },
+            $maxDistance: 50000 // 50km
+          }
         }
-      }
-    });
+      });
+    } catch (geoErr) {
+      console.warn('Nearby driver geo-query skipped (may be index issue):', geoErr.message);
+      // Fall back: notify all online+approved drivers with matching vehicleType
+      nearbyDrivers = await Driver.find({ isOnline: true, isApproved: true, vehicleType: vehicleType || 'car' });
+    }
 
     const ride = new Ride({
       passenger: passengerId,
