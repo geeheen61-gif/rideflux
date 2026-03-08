@@ -88,7 +88,16 @@ exports.verifyOtp = async (req, res) => {
 
     sendWelcomeEmail(email, user.name).catch(() => { });
 
-    res.json({ _id: user._id, name: user.name, email: user.email, role: user.role, token: generateToken(user._id, user.role) });
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isVerified: user.isVerified,
+      isApproved: user.isApproved || false,
+      vehicleType: user.vehicleType,
+      token: generateToken(user._id, user.role)
+    });
   } catch (error) {
     res.status(500).json({ message: 'Verification failed' });
   }
@@ -110,7 +119,16 @@ exports.login = async (req, res) => {
     if (role !== 'admin' && !user.isVerified) return res.status(401).json({ message: 'Email not verified', isVerified: false });
     if (user.isBlocked) return res.status(403).json({ message: 'Account blocked' });
 
-    res.json({ _id: user._id, name: user.name, email: user.email, role: user.role, token: generateToken(user._id, user.role) });
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isVerified: user.isVerified,
+      isApproved: user.isApproved || false,
+      vehicleType: user.vehicleType,
+      token: generateToken(user._id, user.role)
+    });
   } catch (error) {
     res.status(500).json({ message: 'Login failed' });
   }
@@ -204,7 +222,16 @@ exports.socialLogin = async (req, res) => {
       user = await Model.create({ name, email, socialId, provider, role, isVerified: true });
     }
 
-    res.json({ _id: user._id, name: user.name, email: user.email, role: user.role, token: generateToken(user._id, user.role) });
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isVerified: user.isVerified,
+      isApproved: user.isApproved || false,
+      vehicleType: user.vehicleType,
+      token: generateToken(user._id, user.role)
+    });
   } catch (error) {
     res.status(500).json({ message: 'Social failed' });
   }
