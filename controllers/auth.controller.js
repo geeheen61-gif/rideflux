@@ -1,8 +1,11 @@
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const Driver = require('../models/Driver');
 const Admin = require('../models/Admin');
 const { sendOtpEmail, sendWelcomeEmail, sendResetPasswordEmail } = require('../utils/emailService');
+
+const googleClient = process.env.GOOGLE_CLIENT_ID ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID) : null;
 
 // Helper: Token Generation
 const generateToken = (id, role) => jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '30d' });
