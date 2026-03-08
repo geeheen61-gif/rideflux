@@ -4,32 +4,33 @@ const fs = require('fs');
 require('dotenv').config();
 
 // Using Port 587 with secure: false (STARTTLS) is generally more reliable on cloud providers like Render
-// Explicit Configuration for Port 465 (SSL) - Usually more reliable on cloud providers like Render
+// Optimized for High Speed and Reliability on Cloud Providers
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // true for 465, false for other ports
+  port: 587,
+  secure: false, // Use STARTTLS
+  pool: true,    // Use a pool of connections for faster sending
+  maxConnections: 5,
+  maxMessages: 100,
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : '' // Remove spaces if any
+    pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : ''
   },
-  debug: true,
-  logger: true,
   tls: {
-    rejectUnauthorized: false // Helps avoid SSL handshake failures in some cloud environments
+    ciphers: 'SSLv3', // Broad compatible ciphers
+    rejectUnauthorized: false
   },
-  connectionTimeout: 20000, // 20 seconds
-  greetingTimeout: 20000,
+  connectionTimeout: 10000, // Reduced to 10s for faster failure detection
+  greetingTimeout: 10000,
   socketTimeout: 20000
 });
 
-transporter.verify(function (error, success) {
+// Non-blocking verification to avoid delaying server startup
+transporter.verify((error) => {
   if (error) {
-    console.error('📧 SMTP Connection Error:', error);
-    console.log('📧 Current SMTP Config - User:', process.env.EMAIL_USER ? '✔ Set' : '✖ Missing');
-    console.log('📧 Current SMTP Config - Password:', process.env.EMAIL_PASS ? '✔ Set' : '✖ Missing');
+    console.warn('⚠️ SMTP Warm-up Warning (Emails may fail):', error.message);
   } else {
-    console.log('📧 SMTP Server is ready (GMAIL SERVICE)');
+    console.log('🚀 High-Speed Email Pool Ready');
   }
 });
 
