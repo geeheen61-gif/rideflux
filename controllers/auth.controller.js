@@ -448,3 +448,20 @@ exports.resendOtp = async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
+exports.testEmail = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: 'Email required' });
+
+  try {
+    const { sendOtpEmail } = require('../utils/emailService');
+    await sendOtpEmail(email, '123456');
+    res.json({ message: `Test email sent successfully to ${email}. Check your inbox/spam.` });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Failed to send test email',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
