@@ -13,6 +13,7 @@ const auth = require('./middlewares/auth.middleware'); // Optional check
 
 // Connect to database
 connectDB();
+console.log('🌍 Environment loaded. Port:', process.env.PORT, 'Email:', process.env.EMAIL_USER);
 
 const app = express();
 const server = http.createServer(app);

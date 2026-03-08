@@ -17,8 +17,10 @@ const transporter = nodemailer.createTransport({
 transporter.verify(function (error, success) {
   if (error) {
     console.error('📧 SMTP Connection Error:', error);
+    console.log('📧 Current SMTP Config - User:', process.env.EMAIL_USER ? '✔ Set' : '✖ Missing');
+    console.log('📧 Current SMTP Config - Password:', process.env.EMAIL_PASS ? '✔ Set' : '✖ Missing');
   } else {
-    console.log('📧 SMTP Server is ready (Port 587 - STARTTLS)');
+    console.log('📧 SMTP Server is ready (GMAIL SERVICE)');
   }
 });
 

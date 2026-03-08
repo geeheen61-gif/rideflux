@@ -61,13 +61,19 @@ exports.registerUser = async (req, res) => {
       userData.phone = phone.trim();
     }
 
+    console.log(`📝 Attempting to create user: ${email}`);
     const user = await User.create(userData);
+    console.log(`✅ User created in DB: ${user._id}`);
 
     // Send OTP email in the background to reduce latency for the user
-    sendOtpEmail(email, otp).catch(emailErr => {
-      console.error('Initial OTP Email sending failed (non-fatal):', emailErr.message);
-    });
+    console.log(`📧 Triggering OTP email to: ${email}`);
+    sendOtpEmail(email, otp)
+      .then(info => console.log(`✅ Background email success for ${email}`))
+      .catch(emailErr => {
+        console.error('❌ Background OTP Email fail (non-fatal):', emailErr.message);
+      });
 
+    console.log(`📤 Sending success response to client for ${email}`);
     res.status(201).json({
       message: 'Registration successful. Please verify your email with the OTP sent.',
       email: user.email,
@@ -162,13 +168,19 @@ exports.registerDriver = async (req, res) => {
       driverData.phone = phone.trim();
     }
 
+    console.log(`📝 Attempting to create driver: ${email}`);
     const driver = await Driver.create(driverData);
+    console.log(`✅ Driver created in DB: ${driver._id}`);
 
     // Background email to reduce latency
-    sendOtpEmail(email, otp).catch(emailErr => {
-      console.error('Initial OTP Email sending failed (non-fatal):', emailErr.message);
-    });
+    console.log(`📧 Triggering OTP email to: ${email}`);
+    sendOtpEmail(email, otp)
+      .then(info => console.log(`✅ Background email success for ${email}`))
+      .catch(emailErr => {
+        console.error('❌ Background OTP Email fail (non-fatal):', emailErr.message);
+      });
 
+    console.log(`📤 Sending success response to client for ${email}`);
     res.status(201).json({
       message: 'Registration successful. Please verify your email with the OTP sent.',
       email: driver.email,
