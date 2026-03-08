@@ -30,14 +30,18 @@ exports.registerUser = async (req, res) => {
     if (phone && phone.trim() !== "") {
       query.$or.push({ phone });
     }
-    const userExists = await User.findOne(query);
+
+    // Check availability in both collections concurrently
+    const [userExists, driverExists] = await Promise.all([
+      User.findOne(query),
+      Driver.findOne({ email })
+    ]);
+
     if (userExists) {
       const field = userExists.email === email ? 'Email' : 'Phone';
       return res.status(400).json({ message: `${field} already exists as a Passenger` });
     }
 
-    // Cross-role check
-    const driverExists = await Driver.findOne({ email });
     if (driverExists) {
       return res.status(409).json({ message: 'This email is already registered as a Driver' });
     }
@@ -59,18 +63,10 @@ exports.registerUser = async (req, res) => {
 
     const user = await User.create(userData);
 
-    try {
-      await sendOtpEmail(email, otp);
-    } catch (emailErr) {
-      console.error('Email Sending Failed:', emailErr);
-      // We still created the user, but couldn't send the email.
-      // In this case, we might want to return a specific message.
-      return res.status(201).json({
-        message: 'Registration successful, but we failed to send the OTP email. Please use the resend OTP option.',
-        email: user.email,
-        role: 'user'
-      });
-    }
+    // Send OTP email in the background to reduce latency for the user
+    sendOtpEmail(email, otp).catch(emailErr => {
+      console.error('Initial OTP Email sending failed (non-fatal):', emailErr.message);
+    });
 
     res.status(201).json({
       message: 'Registration successful. Please verify your email with the OTP sent.',
@@ -133,14 +129,18 @@ exports.registerDriver = async (req, res) => {
     if (phone && phone.trim() !== "") {
       query.$or.push({ phone });
     }
-    const driverExists = await Driver.findOne(query);
+
+    // Concurrent check
+    const [driverExists, userExists] = await Promise.all([
+      Driver.findOne(query),
+      User.findOne({ email })
+    ]);
+
     if (driverExists) {
       const field = driverExists.email === email ? 'Email' : 'Phone';
       return res.status(400).json({ message: `${field} already exists as a Driver` });
     }
 
-    // Cross-role check
-    const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(409).json({ message: 'This email is already registered as a Passenger' });
     }
@@ -164,16 +164,10 @@ exports.registerDriver = async (req, res) => {
 
     const driver = await Driver.create(driverData);
 
-    try {
-      await sendOtpEmail(email, otp);
-    } catch (emailErr) {
-      console.error('Email Sending Failed:', emailErr);
-      return res.status(201).json({
-        message: 'Registration successful, but we failed to send the OTP email. Please use the resend OTP option.',
-        email: driver.email,
-        role: 'driver'
-      });
-    }
+    // Background email to reduce latency
+    sendOtpEmail(email, otp).catch(emailErr => {
+      console.error('Initial OTP Email sending failed (non-fatal):', emailErr.message);
+    });
 
     res.status(201).json({
       message: 'Registration successful. Please verify your email with the OTP sent.',
@@ -440,12 +434,12 @@ exports.resendOtp = async (req, res) => {
       user.resetPasswordOtp = otp;
       user.resetPasswordExpires = otpExpires;
       await user.save();
-      await sendResetPasswordEmail(email, otp);
+      sendResetPasswordEmail(email, otp).catch(e => console.error('Delayed resend fail:', e));
     } else {
       user.otp = otp;
       user.otpExpires = otpExpires;
       await user.save();
-      await sendOtpEmail(email, otp);
+      sendOtpEmail(email, otp).catch(e => console.error('Delayed resend fail:', e));
     }
 
     res.json({ message: 'Verification code resent. Please check your email.' });
