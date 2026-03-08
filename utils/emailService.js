@@ -5,17 +5,22 @@ require('dotenv').config();
 
 // Optimized for High Speed and Reliability on Cloud Providers like Render
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // Use STARTTLS
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : ''
   },
-  connectionTimeout: 30000,
-  greetingTimeout: 30000,
-  socketTimeout: 45000,
+  connectionTimeout: 20000,
+  greetingTimeout: 20000,
+  socketTimeout: 30000,
   dnsTimeout: 10000,
-  // Force IPv4 is crucial - many cloud providers have issues routing Gmail over IPv6
-  family: 4
+  // ⚡ CRITICAL: Force IPv4 as cloud hosts often have IPv6 issues with Gmail
+  family: 4,
+  // 🔍 Professional Debugging: Enables full SMTP logs in your Render console
+  debug: true,
+  logger: true
 });
 
 // Non-blocking verification to avoid delaying server startup

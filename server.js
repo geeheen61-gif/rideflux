@@ -13,7 +13,27 @@ const auth = require('./middlewares/auth.middleware'); // Optional check
 
 // Connect to database
 connectDB();
-console.log('🌍 Environment loaded. Port:', process.env.PORT, 'Email:', process.env.EMAIL_USER);
+
+// 📱 Self-Pinger (Prevent Render Sleep Mode)
+const axios = require('axios');
+const RENDER_URL = process.env.RENDER_EXTERNAL_URL || 'https://rideflux.onrender.com';
+setInterval(() => {
+  axios.get(`${RENDER_URL}/ping`).catch(() => { });
+}, 10 * 60 * 1000); // Ping every 10 mins
+
+// ✅ Env Variable Validation Logic
+const validateEnv = () => {
+  const required = ['PORT', 'MONGO_URI', 'JWT_SECRET', 'EMAIL_USER', 'EMAIL_PASS'];
+  const missing = required.filter(key => !process.env[key]);
+  if (missing.length > 0) {
+    console.error('❌ CRITICAL ERROR: Missing Render Environment Variables:', missing.join(', '));
+    console.error('⚠️ FIX: Go to Render Dashboard -> Your Service -> Environment -> Add them manually.');
+  } else {
+    console.log('🌍 All Environment Variables Loaded successfully.');
+    console.log(`📡 Ready on Port: ${process.env.PORT} | Sending from: ${process.env.EMAIL_USER}`);
+  }
+};
+validateEnv();
 
 const app = express();
 const server = http.createServer(app);
@@ -101,6 +121,10 @@ io.on('connection', (socket) => {
 // Basic route
 app.get('/', (req, res) => {
   res.send('RideFlux API is running with Sockets...');
+});
+
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong');
 });
 
 const PORT = process.env.PORT || 5000;
