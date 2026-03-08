@@ -103,8 +103,11 @@ exports.verifyOtp = async (req, res) => {
     user.otp = undefined;
     user.otpExpires = undefined;
     await user.save();
-
-    await sendWelcomeEmail(user.email, user.name);
+    try {
+      await sendWelcomeEmail(user.email, user.name);
+    } catch (emailErr) {
+      console.warn('Welcome email failed (non-fatal):', emailErr.message);
+    }
 
     res.json({
       _id: user._id,
