@@ -1,16 +1,30 @@
 const nodemailer = require('nodemailer');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, // Use SSL
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
-  connectionTimeout: 10000, // 10 seconds
+  connectionTimeout: 10000,
   greetingTimeout: 10000,
-  socketTimeout: 15000
+  socketTimeout: 15000,
+  debug: true, // Enable debug logging
+  logger: true // Log to console
+});
+
+// Verify connection configuration
+transporter.verify(function (error, success) {
+  if (error) {
+    console.error('SMTP Connection Error:', error);
+  } else {
+    console.log('Server is ready to take our messages');
+  }
 });
 
 const getEmailTemplate = (title, content, buttonLabel, buttonUrl) => {
@@ -89,12 +103,18 @@ exports.sendOtpEmail = async (email, otp) => {
     <p style="font-size: 14px; color: #71717a;">Code expires in <span class="accent">10 minutes</span>. If you did not request this, please secure your account.</p>
   `;
 
+  const fs = require('fs');
+  const attachments = [];
+  if (fs.existsSync(LOGO_ATTACHMENT[0].path)) {
+    attachments.push(LOGO_ATTACHMENT[0]);
+  }
+
   const mailOptions = {
-    from: { name: 'RideFlux', address: process.env.EMAIL_USER },
+    from: `"RideFlux" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: `[${otp}] RideFlux Verification Code`,
     html: getEmailTemplate('Identity Verification', content),
-    attachments: LOGO_ATTACHMENT
+    attachments: attachments
   };
 
   try {
@@ -114,12 +134,18 @@ exports.sendWelcomeEmail = async (email, name) => {
     <p>We are thrilled to have you on board. Get ready for a premium ride-sharing experience.</p>
   `;
 
+  const fs = require('fs');
+  const attachments = [];
+  if (fs.existsSync(LOGO_ATTACHMENT[0].path)) {
+    attachments.push(LOGO_ATTACHMENT[0]);
+  }
+
   const mailOptions = {
-    from: { name: 'RideFlux', address: process.env.EMAIL_USER },
+    from: `"RideFlux" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: 'Welcome to RideFlux!',
     html: getEmailTemplate(`Welcome aboard, ${name}`, content),
-    attachments: LOGO_ATTACHMENT
+    attachments: attachments
   };
 
   try {
@@ -142,12 +168,18 @@ exports.sendResetPasswordEmail = async (email, otp) => {
     <p style="font-size: 14px; color: #71717a;">If this was not you, please disregard this email.</p>
   `;
 
+  const fs = require('fs');
+  const attachments = [];
+  if (fs.existsSync(LOGO_ATTACHMENT[0].path)) {
+    attachments.push(LOGO_ATTACHMENT[0]);
+  }
+
   const mailOptions = {
-    from: { name: 'RideFlux', address: process.env.EMAIL_USER },
+    from: `"RideFlux" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: 'Security: RideFlux Reset Protocol',
     html: getEmailTemplate('Reset your protocol', content),
-    attachments: LOGO_ATTACHMENT
+    attachments: attachments
   };
 
   try {
