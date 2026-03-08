@@ -3,27 +3,19 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-// Using Port 587 with secure: false (STARTTLS) is generally more reliable on cloud providers like Render
-// Optimized for High Speed and Reliability on Cloud Providers
+// Optimized for High Speed and Reliability on Cloud Providers like Render
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  pool: true,
-  maxConnections: 5,
-  maxMessages: 100,
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : ''
   },
-  tls: {
-    // Modern secure TLS settings - removing legacy SSLv3
-    rejectUnauthorized: false,
-    minVersion: 'TLSv1.2'
-  },
-  connectionTimeout: 15000,
-  greetingTimeout: 15000,
-  socketTimeout: 30000
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
+  socketTimeout: 45000,
+  dnsTimeout: 10000,
+  // Force IPv4 is crucial - many cloud providers have issues routing Gmail over IPv6
+  family: 4
 });
 
 // Non-blocking verification to avoid delaying server startup
