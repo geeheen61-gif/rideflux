@@ -5,19 +5,11 @@ require('dotenv').config();
 
 // Using Port 587 with secure: false (STARTTLS) is generally more reliable on cloud providers like Render
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
-  tls: {
-    rejectUnauthorized: false
-  },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
   debug: true,
   logger: true
 });
@@ -90,9 +82,10 @@ exports.sendOtpEmail = async (email, otp) => {
   `;
 
   const mailOptions = {
-    from: `"RideFlux Verification" <${process.env.EMAIL_USER}>`,
+    from: process.env.EMAIL_USER,
     to: email,
-    subject: `${otp} is your RideFlux verification code`,
+    subject: `Your RideFlux code: ${otp}`,
+    text: `Your verification code is: ${otp}`,
     html: getEmailTemplate('Verify your email', content)
   };
 
@@ -114,7 +107,7 @@ exports.sendWelcomeEmail = async (email, name) => {
   `;
 
   const mailOptions = {
-    from: `"RideFlux" <${process.env.EMAIL_USER}>`,
+    from: process.env.EMAIL_USER,
     to: email,
     subject: 'Welcome to RideFlux!',
     html: getEmailTemplate('Welcome Aboard', content)
@@ -140,7 +133,7 @@ exports.sendResetPasswordEmail = async (email, otp) => {
   `;
 
   const mailOptions = {
-    from: `"RideFlux Security" <${process.env.EMAIL_USER}>`,
+    from: process.env.EMAIL_USER,
     to: email,
     subject: 'Password Reset Code',
     html: getEmailTemplate('Reset your password', content)
