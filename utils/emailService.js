@@ -7,9 +7,9 @@ require('dotenv').config();
 // Optimized for High Speed and Reliability on Cloud Providers
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // Use STARTTLS
-  pool: true,    // Use a pool of connections for faster sending
+  port: 465,
+  secure: true,
+  pool: true,
   maxConnections: 5,
   maxMessages: 100,
   auth: {
@@ -17,12 +17,13 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : ''
   },
   tls: {
-    ciphers: 'SSLv3', // Broad compatible ciphers
-    rejectUnauthorized: false
+    // Modern secure TLS settings - removing legacy SSLv3
+    rejectUnauthorized: false,
+    minVersion: 'TLSv1.2'
   },
-  connectionTimeout: 10000, // Reduced to 10s for faster failure detection
-  greetingTimeout: 10000,
-  socketTimeout: 20000
+  connectionTimeout: 15000,
+  greetingTimeout: 15000,
+  socketTimeout: 30000
 });
 
 // Non-blocking verification to avoid delaying server startup
