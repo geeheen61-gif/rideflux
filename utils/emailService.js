@@ -1,40 +1,44 @@
-const nodemailer = require('nodemailer');
+const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-// Optimized for High Speed and Reliability on Cloud Providers like Render
-const transporter = nodemailer.createTransport({
-  host: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
-  port: process.env.BREVO_SMTP_PORT || 587,
-  secure: false, // Use STARTTLS
-  auth: {
-    user: process.env.BREVO_SMTP_USER || '8782fe001@smtp-brevo.com',
-    pass: process.env.BREVO_SMTP_PASS || 'MGWqtS5g4LRkw1Tz'
-  },
-  connectionTimeout: 20000,
-  greetingTimeout: 20000,
-  socketTimeout: 30000,
-  dnsTimeout: 10000,
-  // ⚡ CRITICAL: Force IPv4 as cloud hosts often have IPv6 issues with Gmail
-  family: 4,
-  // 🔍 Professional Debugging: Enables full SMTP logs in your Render console
-  debug: true,
-  logger: true
-});
+// We are using the Brevo HTTP API on port 443 to bypass Render SMTP port blocking
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
+const getApiKey = () => process.env.BREVO_API_KEY || process.env.BREVO_SMTP_PASS;
+const getSenderEmail = () => process.env.BREVO_SMTP_USER || '8782fe001@smtp-brevo.com';
 
-// Non-blocking verification to avoid delaying server startup
-transporter.verify((error) => {
-  if (error) {
-    console.warn('⚠️ SMTP Warm-up Warning (Emails may fail):', error.message);
-  } else {
-    console.log('🚀 High-Speed Email Pool Ready');
+const sendEmailViaBrevo = async (toEmail, subject, htmlContent) => {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    console.warn('⚠️ Missing Brevo API Key or SMTP Password in environment variables.');
   }
-});
+
+  const payload = {
+    sender: { email: getSenderEmail(), name: 'RideFlux' },
+    to: [{ email: toEmail }],
+    subject: subject,
+    htmlContent: htmlContent
+  };
+
+  try {
+    const response = await axios.post(BREVO_API_URL, payload, {
+      headers: {
+        'api-key': apiKey,
+        'Content-Type': 'application/json',
+        'accept': 'application/json'
+      }
+    });
+    console.log(`✅ Email sent to ${toEmail} via Brevo API: ${response.data.messageId}`);
+    return response.data;
+  } catch (err) {
+    console.error(`❌ Email API error (${toEmail}):`, err.response ? JSON.stringify(err.response.data) : err.message);
+    throw err;
+  }
+};
 
 /**
  * Simplified Email Template to avoid Spam filters and improve delivery reliability.
- * Removing the large 445KB logo attachment as it flags transactional emails.
  */
 const getEmailTemplate = (title, content) => {
   return `
@@ -91,22 +95,11 @@ exports.sendOtpEmail = async (email, otp) => {
     <p>This code will expire in 10 minutes. If you didn't request this, please ignore this email.</p>
   `;
 
-  const mailOptions = {
-    from: process.env.BREVO_SMTP_USER || '8782fe001@smtp-brevo.com',
-    to: email,
-    subject: `Your RideFlux code: ${otp}`,
-    text: `Your verification code is: ${otp}`,
-    html: getEmailTemplate('Verify your email', content)
-  };
-
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent to ${email}: ${info.messageId}`);
-    return info;
-  } catch (err) {
-    console.error(`❌ Email error (${email}):`, err.message);
-    throw err;
-  }
+  return await sendEmailViaBrevo(
+    email,
+    `Your RideFlux code: ${otp}`,
+    getEmailTemplate('Verify your email', content)
+  );
 };
 
 exports.sendWelcomeEmail = async (email, name) => {
@@ -116,21 +109,11 @@ exports.sendWelcomeEmail = async (email, name) => {
     <p>You can now log in and start using our premium ride-sharing services.</p>
   `;
 
-  const mailOptions = {
-    from: process.env.BREVO_SMTP_USER || '8782fe001@smtp-brevo.com',
-    to: email,
-    subject: 'Welcome to RideFlux!',
-    html: getEmailTemplate('Welcome Aboard', content)
-  };
-
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Welcome email sent to ${email}`);
-    return info;
-  } catch (err) {
-    console.error(`❌ Welcome email error (${email}):`, err.message);
-    throw err;
-  }
+  return await sendEmailViaBrevo(
+    email,
+    'Welcome to RideFlux!',
+    getEmailTemplate('Welcome Aboard', content)
+  );
 };
 
 exports.sendResetPasswordEmail = async (email, otp) => {
@@ -142,19 +125,9 @@ exports.sendResetPasswordEmail = async (email, otp) => {
     <p>If you didn't request a password reset, you can safely ignore this email.</p>
   `;
 
-  const mailOptions = {
-    from: process.env.BREVO_SMTP_USER || '8782fe001@smtp-brevo.com',
-    to: email,
-    subject: 'Password Reset Code',
-    html: getEmailTemplate('Reset your password', content)
-  };
-
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Reset email sent to ${email}`);
-    return info;
-  } catch (err) {
-    console.error(`❌ Reset email error (${email}):`, err.message);
-    throw err;
-  }
+  return await sendEmailViaBrevo(
+    email,
+    'Password Reset Code',
+    getEmailTemplate('Reset your password', content)
+  );
 };
