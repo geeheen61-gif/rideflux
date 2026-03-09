@@ -23,14 +23,14 @@ setInterval(() => {
 
 // ✅ Env Variable Validation Logic
 const validateEnv = () => {
-  const required = ['PORT', 'MONGO_URI', 'JWT_SECRET', 'EMAIL_USER', 'EMAIL_PASS'];
+  const required = ['PORT', 'MONGO_URI', 'JWT_SECRET', 'BREVO_SMTP_USER', 'BREVO_SMTP_PASS'];
   const missing = required.filter(key => !process.env[key]);
   if (missing.length > 0) {
     console.error('❌ CRITICAL ERROR: Missing Render Environment Variables:', missing.join(', '));
     console.error('⚠️ FIX: Go to Render Dashboard -> Your Service -> Environment -> Add them manually.');
   } else {
     console.log('🌍 All Environment Variables Loaded successfully.');
-    console.log(`📡 Ready on Port: ${process.env.PORT} | Sending from: ${process.env.EMAIL_USER}`);
+    console.log(`📡 Ready on Port: ${process.env.PORT} | Sending from: ${process.env.BREVO_SMTP_USER}`);
   }
 };
 validateEnv();

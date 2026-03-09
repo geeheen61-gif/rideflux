@@ -5,12 +5,12 @@ require('dotenv').config();
 
 // Optimized for High Speed and Reliability on Cloud Providers like Render
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
+  host: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
+  port: process.env.BREVO_SMTP_PORT || 587,
   secure: false, // Use STARTTLS
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : ''
+    user: process.env.BREVO_SMTP_USER || '8782fe001@smtp-brevo.com',
+    pass: process.env.BREVO_SMTP_PASS || 'MGWqtS5g4LRkw1Tz'
   },
   connectionTimeout: 20000,
   greetingTimeout: 20000,
@@ -92,7 +92,7 @@ exports.sendOtpEmail = async (email, otp) => {
   `;
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: process.env.BREVO_SMTP_USER || '8782fe001@smtp-brevo.com',
     to: email,
     subject: `Your RideFlux code: ${otp}`,
     text: `Your verification code is: ${otp}`,
@@ -117,7 +117,7 @@ exports.sendWelcomeEmail = async (email, name) => {
   `;
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: process.env.BREVO_SMTP_USER || '8782fe001@smtp-brevo.com',
     to: email,
     subject: 'Welcome to RideFlux!',
     html: getEmailTemplate('Welcome Aboard', content)
@@ -143,7 +143,7 @@ exports.sendResetPasswordEmail = async (email, otp) => {
   `;
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: process.env.BREVO_SMTP_USER || '8782fe001@smtp-brevo.com',
     to: email,
     subject: 'Password Reset Code',
     html: getEmailTemplate('Reset your password', content)
